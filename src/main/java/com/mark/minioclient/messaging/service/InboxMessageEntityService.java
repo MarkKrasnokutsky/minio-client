@@ -1,11 +1,15 @@
 package com.mark.minioclient.messaging.service;
 
+import com.mark.minioclient.domain.entity.File;
+import com.mark.minioclient.domain.enumeration.FileStatus;
 import com.mark.minioclient.messaging.domain.entity.InboxMessage;
 import com.mark.minioclient.messaging.domain.enumeration.InboxStatus;
+import com.mark.minioclient.repository.FileRepository;
 import com.mark.minioclient.repository.InboxMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,6 +20,22 @@ import java.util.List;
 public class InboxMessageEntityService {
 
     private final InboxMessageRepository inboxMessageRepository;
+    private final FileRepository fileRepository;
+
+    @Transactional
+    public void saveResults(InboxMessage inboxMessage, String fullPath) {
+        List<File> files = fileRepository.findByFilePath(fullPath);
+        if (!files.isEmpty()) {
+            files.forEach(file -> file.setStatus(FileStatus.SUCCESS));
+            fileRepository.saveAll(files);
+        }
+
+        inboxMessage.setStatus(InboxStatus.PROCESSED);
+        inboxMessage.setProcessedAt(LocalDateTime.now());
+        save(inboxMessage);
+
+        log.info("Successfully processed: {}", inboxMessage.getId());
+    }
 
     public void save(String messageId, String valueRecord) {
         if (inboxMessageRepository.existsById(messageId)) {
