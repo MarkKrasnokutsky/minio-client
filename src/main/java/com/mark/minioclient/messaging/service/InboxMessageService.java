@@ -16,8 +16,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -29,6 +31,7 @@ public class InboxMessageService {
     private final InboxMessageEntityService inboxMessageEntityService;
     private final FileRepository fileRepository;
     private final MinioConfig minioConfig;
+    private final InboxMessageService self;
 
     @Value("${minio.bucketName}")
     private String bucketName;
@@ -39,9 +42,8 @@ public class InboxMessageService {
 
         for (InboxMessage inboxMessage : pendingMessages) {
             try {
-                String json = objectMapper.readValue(inboxMessage.getPayload(), String.class); // сначала разворачиваем строку
-
-                ConvertRequestMessage request = objectMapper.readValue(json, ConvertRequestMessage.class); // потом парсим объект
+                String json = objectMapper.readValue(inboxMessage.getPayload(), String.class);
+                ConvertRequestMessage request = objectMapper.readValue(json, ConvertRequestMessage.class);
                 String fullPath = FileUtils.removeExtension(request.getPath());
 
                 InputStream stream = client.getObject(
@@ -53,19 +55,9 @@ public class InboxMessageService {
                 byte[] bytes = stream.readAllBytes();
 
                 if (bytes.length > 0) {
-                    List<File> files = fileRepository.findByFilePath(fullPath);
-
-                    if (!files.isEmpty()) {
-                        files.forEach(file -> {
-                            file.setStatus(FileStatus.SUCCESS);
-                        });
-                        fileRepository.saveAll(files);
-                    }
+                    self.saveResults(inboxMessage, fullPath);
                 }
 
-                inboxMessage.setStatus(InboxStatus.PROCESSED);
-                inboxMessageEntityService.save(inboxMessage);
-                log.info("Successfully processed: {}", inboxMessage.getId());
             } catch (Exception e) {
                 log.error("Failed processing InboxMessage {}", inboxMessage, e);
                 inboxMessage.setStatus(InboxStatus.FAILED);
@@ -74,4 +66,18 @@ public class InboxMessageService {
         }
     }
 
+    @Transactional
+    public void saveResults(InboxMessage inboxMessage, String fullPath) {
+        List<File> files = fileRepository.findByFilePath(fullPath);
+        if (!files.isEmpty()) {
+            files.forEach(file -> file.setStatus(FileStatus.SUCCESS));
+            fileRepository.saveAll(files);
+        }
+
+        inboxMessage.setStatus(InboxStatus.PROCESSED);
+        inboxMessage.setProcessedAt(LocalDateTime.now());
+        inboxMessageEntityService.save(inboxMessage);
+
+        log.info("Successfully processed: {}", inboxMessage.getId());
+    }
 }
