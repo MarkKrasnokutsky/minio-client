@@ -5,7 +5,6 @@ import com.mark.minioclient.config.MinioConfig;
 import com.mark.minioclient.messaging.domain.ConvertRequestMessage;
 import com.mark.minioclient.messaging.domain.entity.InboxMessage;
 import com.mark.minioclient.messaging.domain.enumeration.InboxStatus;
-import com.mark.minioclient.repository.FileRepository;
 import com.mark.minioclient.utils.FileUtils;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;

@@ -39,3 +39,10 @@ minio:
   secretKey: minioadmin123
   bucketName: test-bucket
   filesPath: test_path
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:1000/eureka
+  instance:
+    instance-id: ${spring.application.name}:${random.uuid}
