@@ -14,7 +14,8 @@ public class ConvertRequestConsumer {
 
     private final InboxMessageEntityService inboxMessageEntityService;
 
-    @KafkaListener(topics = "convert-response", groupId = "request_consumer")
+    @KafkaListener(topics = "${spring.kafka.topic.convert-response.name}",
+            groupId = "${spring.kafka.consumer.group-id}")
     public void consume(ConsumerRecord<String, String> record) {
         String messageId = record.topic() + "-" + record.partition() + "-" + record.offset();
 

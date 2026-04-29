@@ -1,6 +1,6 @@
 package com.mark.minioclient.messaging.service;
 
-import com.mark.minioclient.domain.entity.File;
+import com.mark.minioclient.domain.entity.FileEntity;
 import com.mark.minioclient.domain.enumeration.FileStatus;
 import com.mark.minioclient.messaging.domain.entity.InboxMessage;
 import com.mark.minioclient.messaging.domain.enumeration.InboxStatus;
@@ -24,10 +24,10 @@ public class InboxMessageEntityService {
 
     @Transactional
     public void saveResults(InboxMessage inboxMessage, String fullPath) {
-        List<File> files = fileRepository.findByFilePath(fullPath);
-        if (!files.isEmpty()) {
-            files.forEach(file -> file.setStatus(FileStatus.SUCCESS));
-            fileRepository.saveAll(files);
+        List<FileEntity> fileEntities = fileRepository.findByFilePath(fullPath);
+        if (!fileEntities.isEmpty()) {
+            fileEntities.forEach(fileEntity -> fileEntity.setStatus(FileStatus.SUCCESS));
+            fileRepository.saveAll(fileEntities);
         }
 
         inboxMessage.setStatus(InboxStatus.PROCESSED);

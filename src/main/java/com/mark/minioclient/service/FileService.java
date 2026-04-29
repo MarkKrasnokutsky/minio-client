@@ -2,12 +2,13 @@ package com.mark.minioclient.service;
 
 import com.mark.minioclient.domain.dto.FileResponse;
 import com.mark.minioclient.domain.enumeration.FileStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 public interface FileService {
 
-    String upload(MultipartFile file);
+    void upload(MultipartFile file) throws IOException;
 
     FileStatus getFileStatusById(Long id);
 
