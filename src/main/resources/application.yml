@@ -3,7 +3,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: admin
     password: admin
-    url: jdbc:postgresql://localhost:28072/backend-db
+    url: jdbc:postgresql://localhost:28073/minio-client-db
   liquibase:
     changeLog: classpath:/db/db.changelog-master.xml
     databaseChangeLogTable: _databasechangelog
@@ -37,5 +37,12 @@ minio:
   url: http://localhost:9000
   accessKey: minioadmin
   secretKey: minioadmin123
-  bucketName: myBucket
+  bucketName: test-bucket
   filesPath: test_path
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:1000/eureka
+  instance:
+    instance-id: ${spring.application.name}:${random.uuid}
